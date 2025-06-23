@@ -20,22 +20,25 @@
           type="text"
           class="form-control"
           id="urlInput"
-          placeholder="https://example.com/app"
+          placeholder="https://example.com/diykycapp/kycjourney"
         />
       </div>
       <div class="mb-3">
-        <label for="paramsInput" class="form-label">Query Parameters</label>
+        <label for="tokenApiUrlInput" class="form-label">API URL</label>
         <input
           type="text"
           class="form-control"
-          id="paramsInput"
-          placeholder="token=abc123&foo=bar"
+          id="tokenApiUrlInput"
+          placeholder="https://example.com/diykyc/api/v1/url/generate"
         />
+        <p style="font-size: 10px; color: rgb(105, 105, 225);">
+          <i>*API URL which will be generate a token for you</i>
+        </p>
       </div>
       <button id="redirectCurrent" class="btn btn-primary me-2">
-        Redirect (Current Tab)
+        Redirect
       </button>
-<!--       <button id="redirectNew" class="btn btn-secondary">
+      <!-- <button id="redirectNew" class="btn btn-secondary">
         Redirect (New Tab)
       </button> -->
     </div>
@@ -47,135 +50,186 @@
         return base + (params.trim().startsWith("?") ? params : "?" + params);
       }
 
+      let redirectUrl;
+      const payload = JSON.stringify({
+        source: "MSIBPL",
+        RequestId: "KY323003953038",
+        GetRecordType: "I",
+        MobileNumber: "9999999999",
+        DiscrepancyFlag: "Y",
+      });
+
+      console.log("Original:", payload);
+
+      const key = "CQuYCxIVNyTOt487084UPBMxhS0XxRE4"; // 32 bytes
+      const iv = "w6tmvKzUj6Rg"; // 12 bytes
+
+      document
+        .getElementById("redirectCurrent")
+        .addEventListener("click", async function () {
+          console.log("Redirect (Current Tab) button clicked.");
+
+          const baseUrl =
+            document.getElementById("urlInput").value.trim() ||
+            `https://diykyc-sb.trackwizz.com/diykycapp/kycjourney`;
+          console.log("Base URL:", baseUrl);
+
+          const tokenApiUrl =
+            document.getElementById("tokenApiUrlInput").value.trim() ||
+            `https://diykyc-sb.trackwizz.com/diykyc/api/v1/url/generate`;
+          console.log("Token API URL:", tokenApiUrl);
+
+          console.log("Encrypting request parameters...");
+          const encryptedRequestParams = await setRequestParams(baseUrl);
+          console.log("Encrypted Request Parameters:", encryptedRequestParams);
+
+          console.log("Sending request to generate token...");
+          const response = await (
+            await generateToken(tokenApiUrl, encryptedRequestParams)
+          ).json();
+
+          // const response = {
+          //   ciphertext:
+          //     "FVQ+NcsdCx2GcJru+Pc/vGliwjwFqW/L833fpiBwExu87m5uNTsRO8BwRqpuKLucTOXVJ/HSqDiowRzTJKh8lXLAWGt21bWtzyDgpXxgk+UGv7UDTL+I36xSRL/hO19LOC9AAoStfEmbHH//9jaUqVpcRtyPYvJ8alJR240QGrH2oZ+d/kcOcI0bcha4n3RiwVesQeNdUviqTnLA9no8E8kfau1xkdWgM8Rz5GjiZJnWqBeCMPwZ5CzOLoa85KGnOp5+NXaguuXt5J082sKASpqBxyaSMBusn2tpX9V+dcPzoOnhA0rDHrqIj/zaXAfHce1SzdOvv1ki9MTKu48ATjCAKQAxkFUrtb78SdPorvW1PY1kSd79foAkVZ20O/Y2cnhw/q9ToUEMcAQHNRtDcnAkpnawsqoJGGgyz6x54HbKWyBl/WlVZELxQt31U3v0CkL8FZReigu2HjGKOwvN3Y+NNoOgZHnC9jmKZo1JLQwfjI6BQfnNPr3GaQlJanSUks+O7iiErCG0QrPyJ0mMJzdKSJuRnO+HvIwwzfhE4kIWvnZiu0VMCfF2U9B/OrgiPIpN5iLfJDyiSvVtzgMXrHt2noqJxOcg5b1yRBpseeMJBWUowVBA3ZOK2p2hkFvW1OG8x8W7TTjipybUI1tBSUkEyjuD/7SPN9BHUQ39hSLM03n6OO05t2QsHuCqEuKm7kYk9uwvxpjnUi7DK8ZvXqouqcLZGxhS/BX0HHM0i0sWA2G82xqw+ji6laOiBDufXycE8feSKXksd2lX0UMUxdkyNbsfLMEtkqdgOmn6xeGKFTxqk+GQHYXbJ6Yi5kI88qTW/c+3pKuUSzo7wyVc8PQgzaN3Idh6j07Hd1SQAIjiAwiWgQmAMj+5OOts9NCU2NkPt0W2pnO7U6tes9p2FSx59cye/Ps3Tw+zbyicz1d0cS9aTLXoJSb5gNAfx5Ixg5P+YVEksqpLCs+iL8x2qtgaLA==",
+          //   httpCode: null,
+          //   httpMessage: null,
+          //   moreInformation: null,
+          // };
+          console.log("API Response:", response);
+
+          console.log("Decrypting API response...");
+          const decryptedResponse = JSON.parse(
+            await decryptAESGCM(response.ciphertext, key, iv)
+          );
+          console.log("Decrypted API Response:", decryptedResponse);
+
+          console.log("Redirecting to final URL...");
+          window.location.href = decryptedResponse.data.url;
+        });
+
+      // document
+      //   .getElementById("redirectNew")
+      //   .addEventListener("click", function () {
+      //     const baseUrl = document.getElementById("urlInput").value.trim();
+      //     const query = document
+      //       .getElementById("tokenApiUrlInput")
+      //       .value.trim();
+      //     const key = query.slice(0, 4);
+      //     const value = encodeURIComponent(query.slice(4));
+      //     const finalUrl = buildUrl(baseUrl, key + value);
+      //     window.open(finalUrl, "_blank");
+      //   });
+
       // Utility: convert a UTF-8 string to Uint8Array
       function toUtf8Bytes(str) {
-          return new TextEncoder().encode(str);
+        return new TextEncoder().encode(str);
+      }
+
+      async function generateToken(url, payload) {
+        return await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", // tell server we’re sending JSON
+            Accept: "application/json", // tell server we expect JSON back
+          },
+          body: JSON.stringify(payload), // convert JS object → JSON string
+        });
       }
 
       // Utility: convert ArrayBuffer to Base64
       function arrayBufferToBase64(buffer) {
-          const bytes = new Uint8Array(buffer);
-          let binary = '';
-          for (let b of bytes) binary += String.fromCharCode(b);
-          return btoa(binary);
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let b of bytes) binary += String.fromCharCode(b);
+        return btoa(binary);
       }
 
-// Utility: convert Base64 to ArrayBuffer
-function base64ToArrayBuffer(base64) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes.buffer;
-}
+      // Utility: convert Base64 to ArrayBuffer
+      function base64ToArrayBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+      }
 
-/**
- * Encrypt plaintext with AES-256-GCM
- * @param {string} plainText – the UTF-8 string to encrypt
- * @param {string} keyStr    – 32-char secret key (same as key.getBytes("UTF-8") in Java)
- * @param {string} ivStr     – 12-char IV (same as IV.getBytes() in Java)
- * @returns {Promise<string>} – Base64-encoded ciphertext (includes tag)
- */
-async function encryptAESGCM(plainText, keyStr, ivStr) {
-    const keyBytes = toUtf8Bytes(keyStr);
-    const ivBytes = toUtf8Bytes(ivStr);
+      /**
+       * Encrypt plaintext with AES-256-GCM
+       * @param {string} plainText – the UTF-8 string to encrypt
+       * @param {string} keyStr    – 32-char secret key (same as key.getBytes("UTF-8") in Java)
+       * @param {string} ivStr     – 12-char IV (same as IV.getBytes() in Java)
+       * @returns {Promise<string>} – Base64-encoded ciphertext (includes tag)
+       */
+      async function encryptAESGCM(plainText, keyStr, ivStr) {
+        const keyBytes = toUtf8Bytes(keyStr);
+        const ivBytes = toUtf8Bytes(ivStr);
 
-    // import raw key
-    const cryptoKey = await window.crypto.subtle.importKey(
-        'raw', keyBytes, { name: 'AES-GCM', length: 256 },
-        false, ['encrypt']
-    );
+        // import raw key
+        const cryptoKey = await window.crypto.subtle.importKey(
+          "raw",
+          keyBytes,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["encrypt"]
+        );
 
-    const encodedPlain = toUtf8Bytes(plainText);
-    const cipherBuffer = await window.crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: ivBytes, tagLength: 128 },
-        cryptoKey,
-        encodedPlain
-    );
+        const encodedPlain = toUtf8Bytes(plainText);
+        const cipherBuffer = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: ivBytes, tagLength: 128 },
+          cryptoKey,
+          encodedPlain
+        );
 
-    return arrayBufferToBase64(cipherBuffer);
-}
+        return arrayBufferToBase64(cipherBuffer);
+      }
 
-/**
- * Decrypt ciphertext with AES-256-GCM
- * @param {string} cipherTextB64 – Base64 ciphertext (with tag)
- * @param {string} keyStr         – same 32-char key string
- * @param {string} ivStr          – same 12-char IV string
- * @returns {Promise<string>}    – decrypted UTF-8 plaintext
- */
-async function decryptAESGCM(cipherTextB64, keyStr, ivStr) {
-    const keyBytes = toUtf8Bytes(keyStr);
-    const ivBytes = toUtf8Bytes(ivStr);
-    const cipherBuffer = base64ToArrayBuffer(cipherTextB64);
+      /**
+       * Decrypt ciphertext with AES-256-GCM
+       * @param {string} cipherTextB64 – Base64 ciphertext (with tag)
+       * @param {string} keyStr         – same 32-char key string
+       * @param {string} ivStr          – same 12-char IV string
+       * @returns {Promise<string>}    – decrypted UTF-8 plaintext
+       */
+      async function decryptAESGCM(cipherTextB64, keyStr, ivStr) {
+        const keyBytes = toUtf8Bytes(keyStr);
+        const ivBytes = toUtf8Bytes(ivStr);
+        const cipherBuffer = base64ToArrayBuffer(cipherTextB64);
 
-    const cryptoKey = await window.crypto.subtle.importKey(
-        'raw', keyBytes, { name: 'AES-GCM', length: 256 },
-        false, ['decrypt']
-    );
+        const cryptoKey = await window.crypto.subtle.importKey(
+          "raw",
+          keyBytes,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["decrypt"]
+        );
 
-    const plainBuffer = await window.crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: ivBytes, tagLength: 128 },
-        cryptoKey,
-        cipherBuffer
-    );
+        const plainBuffer = await window.crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: ivBytes, tagLength: 128 },
+          cryptoKey,
+          cipherBuffer
+        );
 
-    return new TextDecoder().decode(plainBuffer);
-}
+        return new TextDecoder().decode(plainBuffer);
+      }
 
-// ——— Example usage ———
-(async () => {
-    const key = 'CQuYCxIVNyTOt487084UPBMxhS0XxRE4';  // 32 bytes
-    const iv = 'w6tmvKzUj6Rg';                     // 12 bytes
+      // ——— Example usage ———
+      async function setRequestParams(inputUrl) {
+        // Encrypt
+        const encryptedB64 = await encryptAESGCM(payload, key, iv);
+        console.log("Encrypted (Base64):", encryptedB64);
 
-    const payload = JSON.stringify({
-        source: 'MSIBPL',
-        RequestId: 'KY323003953038',
-        GetRecordType: 'I',
-        MobileNumber: '9999999999',
-        DiscrepancyFlag: 'Y'
-    });
+        // // If you need to URL-encode the tag:
+        // const urlTag = encodeURIComponent(encryptedB64);
+        // console.log("URL-encoded tag:", urlTag);
+        // const finalUrl = `${inputUrl}?tag=${urlTag}`;
+        // // console.log("Final URL:", `${finalUrl}`);
 
-    console.log('Original:', payload);
-
-    // Encrypt
-    const encryptedB64 = await encryptAESGCM(payload, key, iv);
-    console.log('Encrypted (Base64):', encryptedB64);
-
-    // If you need to URL-encode the tag:
-    const urlTag = encodeURIComponent(encryptedB64);
-    console.log('URL-encoded tag:', urlTag);
-    console.log('Final URL:', `${baseUrl}?tag=${urlTag}`);
-
-    // Decrypt
-    const decrypted = await decryptAESGCM(encryptedB64, key, iv);
-    console.log('Decrypted:', decrypted);
-})();
-
-const baseUrl = document.getElementById("urlInput").value.trim();
-let urlToRedirect = `${baseUrl}?tag=${urlTag}`;
-      
-      document
-        .getElementById("redirectCurrent")
-        .addEventListener("click", function () {
-          // const baseUrl = document.getElementById("urlInput").value.trim();
-          // const query = document.getElementById("paramsInput").value.trim();
-          // const key = query.slice(0,4)
-          // const value = encodeURIComponent(query.slice(4))
-          // const finalUrl = buildUrl(baseUrl, key+value);
-          window.location.href = encodeURIComponent(urlToRedirect);
-        });
-
-      document
-        .getElementById("redirectNew")
-        .addEventListener("click", function () {
-          const baseUrl = document.getElementById("urlInput").value.trim();
-          const query = document.getElementById("paramsInput").value.trim();
-          const key = query.slice(0,4)
-          const value = encodeURIComponent(query.slice(4))
-          const finalUrl = buildUrl(baseUrl, key+value);
-          window.open(finalUrl, "_blank");
-        });
+        // Decrypt
+        const decrypted = await decryptAESGCM(encryptedB64, key, iv);
+        console.log("Decrypted:", decrypted);
+        return { ciphertext: encryptedB64 };
+      }
     </script>
   </body>
 </html>
