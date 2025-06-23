@@ -47,15 +47,123 @@
         return base + (params.trim().startsWith("?") ? params : "?" + params);
       }
 
+      // Utility: convert a UTF-8 string to Uint8Array
+      function toUtf8Bytes(str) {
+          return new TextEncoder().encode(str);
+      }
+
+      // Utility: convert ArrayBuffer to Base64
+      function arrayBufferToBase64(buffer) {
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          for (let b of bytes) binary += String.fromCharCode(b);
+          return btoa(binary);
+      }
+
+// Utility: convert Base64 to ArrayBuffer
+function base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * Encrypt plaintext with AES-256-GCM
+ * @param {string} plainText – the UTF-8 string to encrypt
+ * @param {string} keyStr    – 32-char secret key (same as key.getBytes("UTF-8") in Java)
+ * @param {string} ivStr     – 12-char IV (same as IV.getBytes() in Java)
+ * @returns {Promise<string>} – Base64-encoded ciphertext (includes tag)
+ */
+async function encryptAESGCM(plainText, keyStr, ivStr) {
+    const keyBytes = toUtf8Bytes(keyStr);
+    const ivBytes = toUtf8Bytes(ivStr);
+
+    // import raw key
+    const cryptoKey = await window.crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'AES-GCM', length: 256 },
+        false, ['encrypt']
+    );
+
+    const encodedPlain = toUtf8Bytes(plainText);
+    const cipherBuffer = await window.crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: ivBytes, tagLength: 128 },
+        cryptoKey,
+        encodedPlain
+    );
+
+    return arrayBufferToBase64(cipherBuffer);
+}
+
+/**
+ * Decrypt ciphertext with AES-256-GCM
+ * @param {string} cipherTextB64 – Base64 ciphertext (with tag)
+ * @param {string} keyStr         – same 32-char key string
+ * @param {string} ivStr          – same 12-char IV string
+ * @returns {Promise<string>}    – decrypted UTF-8 plaintext
+ */
+async function decryptAESGCM(cipherTextB64, keyStr, ivStr) {
+    const keyBytes = toUtf8Bytes(keyStr);
+    const ivBytes = toUtf8Bytes(ivStr);
+    const cipherBuffer = base64ToArrayBuffer(cipherTextB64);
+
+    const cryptoKey = await window.crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'AES-GCM', length: 256 },
+        false, ['decrypt']
+    );
+
+    const plainBuffer = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: ivBytes, tagLength: 128 },
+        cryptoKey,
+        cipherBuffer
+    );
+
+    return new TextDecoder().decode(plainBuffer);
+}
+
+// ——— Example usage ———
+(async () => {
+    const key = 'CQuYCxIVNyTOt487084UPBMxhS0XxRE4';  // 32 bytes
+    const iv = 'w6tmvKzUj6Rg';                     // 12 bytes
+
+    const payload = JSON.stringify({
+        source: 'MSIBPL',
+        RequestId: 'KY323003953038',
+        GetRecordType: 'I',
+        MobileNumber: '9999999999',
+        DiscrepancyFlag: 'Y'
+    });
+
+    console.log('Original:', payload);
+
+    // Encrypt
+    const encryptedB64 = await encryptAESGCM(payload, key, iv);
+    console.log('Encrypted (Base64):', encryptedB64);
+
+    // If you need to URL-encode the tag:
+    const urlTag = encodeURIComponent(encryptedB64);
+    console.log('URL-encoded tag:', urlTag);
+    console.log('Final URL:', `${baseUrl}?tag=${urlTag}`);
+
+    // Decrypt
+    const decrypted = await decryptAESGCM(encryptedB64, key, iv);
+    console.log('Decrypted:', decrypted);
+})();
+
+const baseUrl = document.getElementById("urlInput").value.trim();
+let urlToRedirect = `${baseUrl}?tag=${urlTag}`;
+      
       document
         .getElementById("redirectCurrent")
         .addEventListener("click", function () {
-          const baseUrl = document.getElementById("urlInput").value.trim();
-          const query = document.getElementById("paramsInput").value.trim();
-          const key = query.slice(0,4)
-          const value = encodeURIComponent(query.slice(4))
-          const finalUrl = buildUrl(baseUrl, key+value);
-          window.location.href = finalUrl;
+          // const baseUrl = document.getElementById("urlInput").value.trim();
+          // const query = document.getElementById("paramsInput").value.trim();
+          // const key = query.slice(0,4)
+          // const value = encodeURIComponent(query.slice(4))
+          // const finalUrl = buildUrl(baseUrl, key+value);
+          window.location.href = encodeURIComponent(urlToRedirect);
         });
 
       document
