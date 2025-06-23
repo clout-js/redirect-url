@@ -84,17 +84,17 @@
           console.log("Encrypted Request Parameters:", encryptedRequestParams);
 
           console.log("Sending request to generate token...");
-          // const response = await (
-          //   await generateToken(tokenApiUrl, encryptedRequestParams)
-          // ).json();
+          const response = await (
+            await generateToken(tokenApiUrl, encryptedRequestParams)
+          ).json();
 
-          const response = {
-            ciphertext:
-              "FVQ+NcsdCx2GcJru+Pc/vGliwjwFqW/L833fpiBwExu87m5uNTsRO8BwRqpuKLucTOXVJ/HSqDiowRzTJKh8lXLAWGt21bWtzyDgpXxgk+UGv7UDTL+I36xSRL/hO19LOC9AAoStfEmbHH//9jaUqVpcRtyPYvJ8alJR240QGrH2oZ+d/kcOcI0bcha4n3RiwVesQeNdUviqTnLA9no8E8kfau1xkdWgM8Rz5GjiZJnWqBeCMPwZ5CzOLoa85KGnOp5+NXaguuXt5J082sKASpqBxyaSMBusn2tpX9V+dcPzoOnhA0rDHrqIj/zaXAfHce1SzdOvv1ki9MTKu48ATjCAKQAxkFUrtb78SdPorvW1PY1kSd79foAkVZ20O/Y2cnhw/q9ToUEMcAQHNRtDcnAkpnawsqoJGGgyz6x54HbKWyBl/WlVZELxQt31U3v0CkL8FZReigu2HjGKOwvN3Y+NNoOgZHnC9jmKZo1JLQwfjI6BQfnNPr3GaQlJanSUks+O7iiErCG0QrPyJ0mMJzdKSJuRnO+HvIwwzfhE4kIWvnZiu0VMCfF2U9B/OrgiPIpN5iLfJDyiSvVtzgMXrHt2noqJxOcg5b1yRBpseeMJBWUowVBA3ZOK2p2hkFvW1OG8x8W7TTjipybUI1tBSUkEyjuD/7SPN9BHUQ39hSLM03n6OO05t2QsHuCqEuKm7kYk9uwvxpjnUi7DK8ZvXqouqcLZGxhS/BX0HHM0i0sWA2G82xqw+ji6laOiBDufXycE8feSKXksd2lX0UMUxdkyNbsfLMEtkqdgOmn6xeGKFTxqk+GQHYXbJ6Yi5kI88qTW/c+3pKuUSzo7wyVc8PQgzaN3Idh6j07Hd1SQAIjiAwiWgQmAMj+5OOts9NCU2NkPt0W2pnO7U6tes9p2FSx59cye/Ps3Tw+zbyicz1d0cS9aTLXoJSb5gNAfx5Ixg5P+YVEksqpLCs+iL8x2qtgaLA==",
-            httpCode: null,
-            httpMessage: null,
-            moreInformation: null,
-          };
+          // const response = {
+          //   ciphertext:
+          //     "FVQ+NcsdCx2GcJru+Pc/vGliwjwFqW/L833fpiBwExu87m5uNTsRO8BwRqpuKLucTOXVJ/HSqDiowRzTJKh8lXLAWGt21bWtzyDgpXxgk+UGv7UDTL+I36xSRL/hO19LOC9AAoStfEmbHH//9jaUqVpcRtyPYvJ8alJR240QGrH2oZ+d/kcOcI0bcha4n3RiwVesQeNdUviqTnLA9no8E8kfau1xkdWgM8Rz5GjiZJnWqBeCMPwZ5CzOLoa85KGnOp5+NXaguuXt5J082sKASpqBxyaSMBusn2tpX9V+dcPzoOnhA0rDHrqIj/zaXAfHce1SzdOvv1ki9MTKu48ATjCAKQAxkFUrtb78SdPorvW1PY1kSd79foAkVZ20O/Y2cnhw/q9ToUEMcAQHNRtDcnAkpnawsqoJGGgyz6x54HbKWyBl/WlVZELxQt31U3v0CkL8FZReigu2HjGKOwvN3Y+NNoOgZHnC9jmKZo1JLQwfjI6BQfnNPr3GaQlJanSUks+O7iiErCG0QrPyJ0mMJzdKSJuRnO+HvIwwzfhE4kIWvnZiu0VMCfF2U9B/OrgiPIpN5iLfJDyiSvVtzgMXrHt2noqJxOcg5b1yRBpseeMJBWUowVBA3ZOK2p2hkFvW1OG8x8W7TTjipybUI1tBSUkEyjuD/7SPN9BHUQ39hSLM03n6OO05t2QsHuCqEuKm7kYk9uwvxpjnUi7DK8ZvXqouqcLZGxhS/BX0HHM0i0sWA2G82xqw+ji6laOiBDufXycE8feSKXksd2lX0UMUxdkyNbsfLMEtkqdgOmn6xeGKFTxqk+GQHYXbJ6Yi5kI88qTW/c+3pKuUSzo7wyVc8PQgzaN3Idh6j07Hd1SQAIjiAwiWgQmAMj+5OOts9NCU2NkPt0W2pnO7U6tes9p2FSx59cye/Ps3Tw+zbyicz1d0cS9aTLXoJSb5gNAfx5Ixg5P+YVEksqpLCs+iL8x2qtgaLA==",
+          //   httpCode: null,
+          //   httpMessage: null,
+          //   moreInformation: null,
+          // };
           console.log("API Response:", response);
 
           console.log("Decrypting API response...");
