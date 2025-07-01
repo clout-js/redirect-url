@@ -31,7 +31,7 @@
           id="tokenApiUrlInput"
           placeholder="https://example.com/diykyc/api/v1/url/generate"
         />
-        <p style="font-size: 10px; color: rgb(105, 105, 225);">
+        <p style="font-size: 10px; color: rgb(105, 105, 225)">
           <i>*API URL which will be generate a token for you</i>
         </p>
       </div>
@@ -50,12 +50,30 @@
         return base + (params.trim().startsWith("?") ? params : "?" + params);
       }
 
+      function generateRandomIndianMobile() {
+        const firstDigits = ["6", "7", "8", "9"];
+        // pick a valid first digit
+        let mobile =
+          firstDigits[Math.floor(Math.random() * firstDigits.length)];
+
+        // append 9 more random digits (0–9)
+        for (let i = 0; i < 9; i++) {
+          mobile += Math.floor(Math.random() * 10);
+        }
+
+        return mobile;
+      }
+
+      // example:
+      const randomMobileNumber = generateRandomIndianMobile();
+      console.log(randomMobileNumber); // e.g. "9876543210"
+
       let redirectUrl;
       const payload = JSON.stringify({
         source: "MSIBPL",
         RequestId: "KY323003953040",
         GetRecordType: "I",
-        MobileNumber: "9999999991",
+        MobileNumber: randomMobileNumber,
         DiscrepancyFlag: "N",
       });
 
